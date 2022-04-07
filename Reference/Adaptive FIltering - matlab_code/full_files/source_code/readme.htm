@@ -1,0 +1,216 @@
+<html>
+
+<head>
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+<title>readme</title>
+<style>
+<!--
+ p.MsoNormal
+	{mso-style-parent:"";
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	margin-left:0cm; margin-right:0cm; margin-top:0cm}
+ li.MsoNormal
+	{mso-style-parent:"";
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	margin-left:0cm; margin-right:0cm; margin-top:0cm}
+-->
+</style>
+</head>
+
+<body>
+
+<div style="mso-border-bottom-alt: solid windowtext .75pt; border-left: medium none; border-right: medium none; border-top: medium none; border-bottom: 1.0pt solid windowtext; padding-left: 0cm; padding-right: 0cm; padding-top: 0cm; padding-bottom: 1.0pt">
+  <p class="MsoNormal" style="border: medium none; padding: 0cm">
+  <font face="Arial"><b>
+  <span lang="EN-US">What is this program?</span></b></font></div>
+<p class="MsoNormal"><font face="Arial"><b><span lang="EN-US">&nbsp;</span></b></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">This program is writen for EEL6509 
+course project. </span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">It is a wireless communication simulator 
+including Gray coding, modulation, different channel models (AWGN, flat fading 
+and frequency selective fading channels), channel estimation, adaptive 
+equalization, demodulation, Gray decoding. The simulator can also plot dynamic 
+constellation and BER, and for image data, it also plot the received image. Most 
+of the course knowledge points are covered here. all these files have source 
+code there, then user may add their own code there to add more functionalities 
+or test their models. Due to the time limit, some functions are not implemented 
+as channel coding, source coding, etc, and some functions may not be fully 
+tested.</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">This program can run either in default 
+mode or play mode. If user want to play it, they need to specify the modulation 
+type, modulation order, channel type; for both fading channels, user may also 
+need to specify the training data percentage, velocity; for fequency selective 
+fading channel, user also need to specify the equalization algorithm and 
+training mode. If user want to plot dynamic constellation, they also need to 
+specify at which SNR the constellation is drawed. For random source data, user 
+need to specify the data length; for image data, they need to specify a image 
+path. The SNR for showing received image is same for plot constellation, but 
+user may change it in program.</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">Don't be panic about all the setting 
+above. Actually all of the parameters have default value there, so user may just 
+press enter for those default options. Hope you will enjoy it!</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">You may refer to simulation.doc to see a 
+more detail description about the implementation.</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+<div style="mso-border-bottom-alt: solid windowtext .75pt; border-left: medium none; border-right: medium none; border-top: medium none; border-bottom: 1.0pt solid windowtext; padding-left: 0cm; padding-right: 0cm; padding-top: 0cm; padding-bottom: 1.0pt">
+  <p class="MsoNormal" style="border: medium none; padding: 0cm">
+  <font face="Arial"><b>
+  <span lang="EN-US">How to run the program?</span></b></font></div>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">First, user need to put all .m file in 
+one fold. Then just run the main.m file in Matlab, and follow the instruction 
+there.</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">Below is to explain the instruction and 
+parameters in detail:</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">After run the main.m file, the 
+instruction is display in command window of Matlab. User need to select to run 
+the program in default mode or play mode. If they choose default mode, then no 
+any parameter need to be set. The default setting is QPSK modulation, Gray 
+coding, AWGN channel and image data transmission.</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">If user choose the play mode, then 
+follow below steps (select default setting by just press enter):</span></font></p>
+<ol style="margin-top: 0cm; margin-bottom: 0cm" start="1" type="1">
+  <li class="MsoNormal"><font face="Arial"><span lang="EN-US">set the modulation order. </span>
+  </font>
+  </li>
+  <li class="MsoNormal"><font face="Arial"><span lang="EN-US">choose to use gray coding or not</span></font></li>
+  <li class="MsoNormal"><font face="Arial"><span lang="EN-US">choose a channel type</span></font></li>
+  <li class="MsoNormal"><font face="Arial"><span lang="EN-US">For AWGN channel:</span>
+  </font>
+  <ol style="margin-top: 0cm; margin-bottom: 0cm" start="1" type="a">
+    <li class="MsoNormal"><font face="Arial"><span lang="EN-US">choose to send a random data or 
+    image over this channel</span></font></li>
+  </ol>
+  </li>
+</ol>
+<p class="MsoNormal" style="text-indent: -108.0pt; margin-left: 108.0pt">
+<span lang="EN-US">
+<span style="font-style: normal; font-variant: normal; font-weight: normal; font-family: Arial">
+<font size="3">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</font> </span><font face="Arial">i.</font><span style="font-style: normal; font-variant: normal; font-weight: normal; font-family: Arial"><font size="3">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</font>
+</span><font face="Arial">if random data, user need to set data length</font></span></p>
+<p class="MsoNormal" style="text-indent: -108.0pt; margin-left: 108.0pt">
+<span lang="EN-US">
+<span style="font-style: normal; font-variant: normal; font-weight: normal; font-family: Arial">
+<font size="3">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</font> </span><font face="Arial">ii.</font><span style="font-style: normal; font-variant: normal; font-weight: normal; font-family: Arial"><font size="3">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</font>
+</span><font face="Arial">if image, user need to set image file with path&nbsp;
+</font> </span></p>
+<ol style="margin-top: 0cm; margin-bottom: 0cm" start="5" type="1">
+  <li class="MsoNormal"><font face="Arial"><span lang="EN-US">For flat fading channel:</span>
+  </font>
+  <ol style="margin-top: 0cm; margin-bottom: 0cm" start="1" type="a">
+    <li class="MsoNormal"><font face="Arial"><span lang="EN-US">set the percentage of training data 
+    length</span></font></li>
+    <li class="MsoNormal"><font face="Arial"><span lang="EN-US">set which SNR in the SNR array for 
+    plot constellation and image</span></font></li>
+    <li class="MsoNormal"><font face="Arial"><span lang="EN-US">set the velocity from 20km/hr to 
+    120km/hr</span></font></li>
+    <li class="MsoNormal"><font face="Arial"><span lang="EN-US">choose to send a random data or 
+    image over this channel</span></font></li>
+  </ol>
+  </li>
+</ol>
+<p class="MsoNormal" style="text-indent: -108.0pt; margin-left: 108.0pt">
+<span lang="EN-US">
+<span style="font-style: normal; font-variant: normal; font-weight: normal; font-family: Arial">
+<font size="3">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</font> </span><font face="Arial">i.</font><span style="font-style: normal; font-variant: normal; font-weight: normal; font-family: Arial"><font size="3">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</font>
+</span><font face="Arial">if random data, user need to set data length</font></span></p>
+<p class="MsoNormal" style="text-indent: -108.0pt; margin-left: 108.0pt">
+<span lang="EN-US">
+<span style="font-style: normal; font-variant: normal; font-weight: normal; font-family: Arial">
+<font size="3">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</font> </span><font face="Arial">ii.</font><span style="font-style: normal; font-variant: normal; font-weight: normal; font-family: Arial"><font size="3">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</font>
+</span><font face="Arial">if image, user need to set image file with path</font></span></p>
+<ol style="margin-top: 0cm; margin-bottom: 0cm" start="6" type="1">
+  <li class="MsoNormal"><font face="Arial"><span lang="EN-US">For frequency selective fading 
+  channel:</span> </font>
+  <ol style="margin-top: 0cm; margin-bottom: 0cm" start="1" type="a">
+    <li class="MsoNormal"><font face="Arial"><span lang="EN-US">set the percentage of training data 
+    length</span></font></li>
+    <li class="MsoNormal"><font face="Arial"><span lang="EN-US">set which SNR in the SNR array for 
+    plot constellation and image</span></font></li>
+    <li class="MsoNormal"><font face="Arial"><span lang="EN-US">Choose equalization algorithm: LMS 
+    or RLS</span></font></li>
+    <li class="MsoNormal"><font face="Arial"><span lang="EN-US">choose channel estimation mode, 
+    i.e. to reset result from last coherent time or not. Without reset result 
+    give a better performance.</span></font></li>
+    <li class="MsoNormal"><font face="Arial"><span lang="EN-US">choose training mode, i.e. the 
+    training only mode or decision directed mode. Decision directed mode give a 
+    better performance.</span></font></li>
+    <li class="MsoNormal"><font face="Arial"><span lang="EN-US">choose to send a random data or 
+    image over this channel</span></font></li>
+  </ol>
+  </li>
+</ol>
+<p class="MsoNormal" style="text-indent: -108.0pt; margin-left: 108.0pt">
+<span lang="EN-US">
+<span style="font-style: normal; font-variant: normal; font-weight: normal; font-family: Arial">
+<font size="3">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</font> </span><font face="Arial">i.</font><span style="font-style: normal; font-variant: normal; font-weight: normal; font-family: Arial"><font size="3">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</font>
+</span><font face="Arial">if random data, user need to set data length</font></span></p>
+<p class="MsoNormal" style="text-indent: -108.0pt; margin-left: 108.0pt">
+<span lang="EN-US">
+<span style="font-style: normal; font-variant: normal; font-weight: normal; font-family: Arial">
+<font size="3">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</font> </span><font face="Arial">ii.</font><span style="font-style: normal; font-variant: normal; font-weight: normal; font-family: Arial"><font size="3">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</font>
+</span><font face="Arial">if image, user need to set image file with path</font></span></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+<div style="mso-border-bottom-alt: solid windowtext .75pt; border-left: medium none; border-right: medium none; border-top: medium none; border-bottom: 1.0pt solid windowtext; padding-left: 0cm; padding-right: 0cm; padding-top: 0cm; padding-bottom: 1.0pt">
+  <p class="MsoNormal" style="border: medium none; padding: 0cm">
+  <font face="Arial"><b>
+  <span lang="EN-US">Last Update Date, Version Number, and Contact Information</span></b></font></div>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">The program is updated on 20070520. This 
+version number is v1.2, which is updated from v1.1/v1.0 by adding more options 
+for user to play, more default options, more image plots, and more functions as 
+data truncate after receive. It also fix image processing bugs, and frequency 
+selective fading constellation plot BER bug. </span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">If you find any bugs or malfunctions 
+there, please don’t hesitate to email me by
+<a href="mailto:zhifeng@ecel.ufl.edu" style="color: blue; text-decoration: underline; text-underline: single">
+zhifeng@ecel.ufl.edu</a> </span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+<div style="mso-border-bottom-alt: solid windowtext .75pt; border-left: medium none; border-right: medium none; border-top: medium none; border-bottom: 1.0pt solid windowtext; padding-left: 0cm; padding-right: 0cm; padding-top: 0cm; padding-bottom: 1.0pt">
+  <p class="MsoNormal" style="border: medium none; padding: 0cm">
+  <font face="Arial"><b>
+  <span lang="EN-US">Disclaimer</span></b></font></div>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">There is no warranty, expressed or 
+implied, associated with this product.</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">Use at your own risk.</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">Zhifeng Chen</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">
+<a href="mailto:zhifeng@ecel.ufl.edu" style="color: blue; text-decoration: underline; text-underline: single">
+zhifeng@ecel.ufl.edu</a></span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">
+<a href="http://www.ecel.ufl.edu/~zhifeng" style="color: blue; text-decoration: underline; text-underline: single">
+http://www.ecel.ufl.edu/~zhifeng</a></span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">Electrical and Computer Engineering</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">University of Florida</span></font></p>
+<p class="MsoNormal"><font face="Arial"><span lang="EN-US">&nbsp;</span></font></p>
+
+</body>
+
+</html>
