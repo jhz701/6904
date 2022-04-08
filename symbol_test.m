@@ -1,14 +1,21 @@
-%% pulse gen
+%% symbol gen
 n = 10; %10th order derivative
 fs = 100e9; %sampling frequency
 fc = 5e9; % center frequency
 frame = 10e-9;% 10ns frame
-an = 2e-114;% scaling factor
+an = 1e-114;% scaling factor
 frame_num = 100;% 100 frames of data
 RBW = 1e-6/(frame*frame_num); %resolution bw in MHz
+pulse_duration = 1.5e-9;
 pulse = [];
+random_data = [];
+tguard = 3.5e-9;
+tstep = 100e-12;
 for i = 1:frame_num
-    pulse = [pulse gaussian_pulse(n,fs,fc,frame,an)];
+    data = randi(32)-1;
+    data_bits = de2bi(data,5,'left-msb');
+    pulse = [pulse DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc,pulse_duration,an)];
+    random_data = [random_data data];
 end
 time = 0:1/fs:frame_num*frame-1/fs;
 %% pulse plot
@@ -58,9 +65,3 @@ for i = 1:length(f)
 end
 plot(f*1e-9,FCC_mask);
 legend('Pulse','FCC')
-
-
-
-
-
-
