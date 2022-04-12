@@ -7,7 +7,7 @@ setup.regSNR   = 10;            % dB10
 setup.fadeType = 'flat';
 setup.rayleighVelocity= 0;
 setup.flatAttenuation = 0;
-setup.multiPathSetup = [[0.3,5e-9];[0.4,6e-9];[0.1,7e-9]];
+setup.multiPathSetup = [[0.0,1e-9];[0.0,2e-9];[0.0,3e-9]];
 %% pulse gen
 n = 10; %10th order derivative
 fs = 100e9; %sampling frequency
