@@ -7,7 +7,7 @@ setup.regSNR   = 10;            % dB10
 setup.fadeType = 'flat';
 setup.rayleighVelocity= 0;
 setup.flatAttenuation = 0;
-setup.multiPathSetup = [[0.0,1e-9];[0.0,2e-9];[0.0,3e-9]];
+setup.multiPathSetup = [[0.1,1e-9];[0.2,2e-9];[0.3,3e-9]];
 %% pulse gen
 n = 10; %10th order derivative
 fs = 100e9; %sampling frequency
@@ -29,5 +29,6 @@ sigout_rx = channel(sig,setup);
 hold off;
 plot(sigout_rx);
 % Envelope Detection
+sigout_hilbert = abs(hilbert(sigout_rx));
 hold on;
-plot(abs(hilbert(sigout_rx)))
+plot(sigout_hilbert)
