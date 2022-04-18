@@ -9,7 +9,7 @@
 function dstream = TDC(sig, fs, tframe, tres, tsep)
     ndframe = fs*tframe;                        % Length of each data frame
     nframe  = floor(length(sig(:))/ndframe);    % Total number of frames
-    ndres   = fs*tres;                          % length of PSM resolution
+    ndres   = fs*tres;                          % length of DMPPM resolution
     dstream = zeros([1,nframe]);
     ds_ptr = 1;
     active = 0;
@@ -25,7 +25,7 @@ function dstream = TDC(sig, fs, tframe, tres, tsep)
             elseif (active)
                 % Valid data
                 active = 0;
-                d = round(log2((i-last_position)/ndres));   % Pulse-Separation-Modulation (PSM)
+                d = round(log2((i-last_position)/ndres));   % DMPPM Demod & Decode
                 dstream[ds_ptr] = d;
                 ds_ptr = ds_ptr+1;
                 last_position = i;
