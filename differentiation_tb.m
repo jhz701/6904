@@ -1,4 +1,12 @@
+%% DIFFERENTIATION
+% The ultimate goal is to find the peak of each pulse instead of the edges.
+% It greatly decreases timing error due to voltage noise on the edges.
+% The downside is that the voltage noise on the flat part can also cause
+% error. It's amplified by the differentiator.
+%% 
+% Generating some test signals
 channel_tb;
+
 %%
 subplot(2,1,1);
 hold off;
@@ -15,6 +23,8 @@ yyaxis left
 lpd = lowpass(diff(lowpass(sigout_hilbert,2e9,fs)),0.5e9,fs);
 plot(lpd);
 yyaxis right;
-% Now the hyteresis comparator gived a more accurate timing result
-plot(hysteresis(lpd,2e-3,0));
+% Now the hyteresis comparator gives a more accurate timing result
+% Note that the polarity is filpped such that the posedge is the 
+% output signal we want. This is only due to convention
+plot(hysteresis(-lpd,0,-2e-3));
 ylim([-0.5,1.5]);
