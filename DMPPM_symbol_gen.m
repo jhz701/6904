@@ -13,19 +13,22 @@
 % used for avoiding multipath interference.
 
 % frame is the duration of the entire symbol
-function sync_data_pulse = DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc,pulse_duration,an)
+% impairment: struct with power uncertainty and pulse position ucertainty
+function sync_data_pulse = DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment)
     M = length(data_bits); %bits/symbol
     time = 0:1/fs:frame-1/fs; % digitized time
+    data_position_uncertainty = 0:1/fs:impairment.datapulse; % pulse uncertainty digitized
+    sync_position_uncertainty = 0:1/fs:impairment.syncpulse; % sync pulse uncertainty
     sync_data_pulse = zeros(1,length(time));
     tstep_sampled = 0:1/fs:tstep-1/fs;
     tguard_sampled = 0:1/fs:tguard-1/fs;
     pulse_duration_sampled = 0:1/fs:pulse_duration-1/fs;
-    sync_data_pulse(1:length(pulse_duration_sampled)) = gaussian_pulse(n,fs,fc,pulse_duration,an);%sync pulse
+    sync_data_pulse(length(sync_position_uncertainty):length(sync_position_uncertainty)+length(pulse_duration_sampled)-1) = gaussian_pulse(n,fs,fc,pulse_duration,impairment.power*an);%sync pulse
     data_dec = 0;
     for i = M:-1:1
         data_dec = data_dec + data_bits(i)*2^(i-1);
     end
-    sync_data_pulse((length(tguard_sampled)+length(tstep_sampled)*data_dec):(length(tguard_sampled)+length(tstep_sampled)*data_dec+length(pulse_duration_sampled))-1) = gaussian_pulse(n,fs,fc,pulse_duration,an);
+    sync_data_pulse((length(tguard_sampled)+length(tstep_sampled)*data_dec+length(data_position_uncertainty)-length(sync_position_uncertainty)):(length(tguard_sampled)+length(tstep_sampled)*data_dec+length(pulse_duration_sampled))+length(data_position_uncertainty)-1-length(sync_position_uncertainty)) = gaussian_pulse(n,fs,fc,pulse_duration,an*impairment.power);
     
 
 end

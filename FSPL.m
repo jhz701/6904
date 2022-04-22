@@ -23,5 +23,6 @@ function sig_out = FSPL(sig_in,r,fs)
         end
         spectrum(len/2+1) = (1/(2*pi*(len/2)*RBW))*spectrum(len/2+1);
     end
+    spectrum(1) = 0;
     sig_out = ifft(spectrum);
 end

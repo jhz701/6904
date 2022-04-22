@@ -9,12 +9,16 @@ RBW = 1e-6/(frame*frame_num); %resolution bw in MHz
 pulse_duration = 1.5e-9;
 pulse = [];
 random_data = [];
+impairment = struct;
 tguard = 3.5e-9;
 tstep = 100e-12;
 for i = 1:frame_num
     data = randi(32)-1;
     data_bits = de2bi(data,5,'left-msb');
-    pulse = [pulse DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc,pulse_duration,an)];
+    impairment.datapulse = round(normrnd(0,10))*(1/fs);% datapulse uncertainty
+    impairment.syncpulse = abs(round(normrnd(0,1))*(1/fs));% syncpulse uncertainty
+    impairment.power = abs(normrnd(1,0.01));
+    pulse = [pulse DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment)];
     random_data = [random_data data];
 end
 time = 0:1/fs:frame_num*frame-1/fs;
