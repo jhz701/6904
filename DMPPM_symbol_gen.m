@@ -13,7 +13,7 @@
 % used for avoiding multipath interference.
 
 % frame is the duration of the entire symbol
-% impairment: struct with power uncertainty and pulse position ucertainty
+% impairment: struct with power uncertainty and data&sync pulse position ucertainty
 function sync_data_pulse = DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment)
     M = length(data_bits); %bits/symbol
     time = 0:1/fs:frame-1/fs; % digitized time
