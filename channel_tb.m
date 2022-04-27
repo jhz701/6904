@@ -28,6 +28,27 @@ tstep = 0.1e-9;% data step
 r = 1; %transmitter and receiver are 1m away
 random_data = [];
 pulse = [];
+
+
+% Generate a separate stream for locking dection
+% Region Type
+% 0~31: data code
+% 32:   Sync
+% 33:   tgl, Left Guard
+% 34:   tgr, Right Guard
+
+%patternlet = repelem([0],nstep_sync);
+%patternlet = [patternlet repelem([1],round(nstep_tgl))];
+%patternlet = [patternlet repelem([2],nstep_data)];
+%patternlet = [patternlet repelem([3],nstep_tgr)];
+% todo: encode noidealities into this system
+% The pattern is encoded in this way to better utilize the instruction cache
+nstep_sync = pulse_duration/2*fs;
+nstep_tgl  = (tguard)*fs;
+nstep_data = (tstep*31*fs);
+nstep_tgr  = (frame*fs)-nstep_sync-nstep_tgl-nstep_data;
+pattern    = [];
+
 for i = 1:frame_num
     %data = randi(32)-1;
     data = data_test(i);
@@ -36,7 +57,12 @@ for i = 1:frame_num
     impairment.datapulse = round(normrnd(0,sigma_data))*(1/fs);% datapulse uncertainty
     impairment.syncpulse = abs(round(normrnd(0,sigma_sync))*(1/fs));% syncpulse uncertainty
     impairment.power = abs(normrnd(1,sigma_power)); % pulse power uncertainty
+    
     pulse = [pulse (DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment))]; 
+    
+    patternlet = [[32 nstep_sync]' [33 nstep_tgl]' [data nstep_data]' [34 nstep_tgr]'];
+    pattern    = [pattern patternlet];
+
     % random_data = [random_data data];
 end
 figure
@@ -49,36 +75,23 @@ plot(pulse);
 % end
 % plot(sig);
 %% Run it thru a channel
-figure
+figure(2);
 %subplot(2,1,1);
-yyaxis left;
 sigout_rx = channel(pulse,setup);
-hold off;
+%hold off;
 plot(sigout_rx);
 % Envelope Detection
+figure(3);
+yyaxis left;
 sigout_hilbert = abs(hilbert(sigout_rx));
-hold on;
 plot(sigout_hilbert);
 
-% Generate a separate stream for locking dection
-% Region Type
-% 0: Sync
-% 1: tgl, Left Guard
-% 2: tdata
-% 3: tgr, Right Guard
 
-nstep_sync = pulse_duration/2*fs;
-nstep_tgl  = (tguard)*fs;
-nstep_data = (tstep*31*fs);
-nstep_tgr  = (frame*fs)-nstep_sync-nstep_tgl-nstep_data;
-pattern    = [];
-patternlet = repelem([0],nstep_sync);
-patternlet = [patternlet repelem([1],round(nstep_tgl))];
-patternlet = [patternlet repelem([2],nstep_data)];
-patternlet = [patternlet repelem([3],nstep_tgr)];
-for x = 1:frame_num
-    pattern = [pattern patternlet];
-end
-%subplot(2,1,2);
-yyaxis right;
-plot(pattern);
+%yyaxis right;
+%plot(pattern);
+%ylim([-1,4]);
+
+% When testing, we can first force the TDC to start at a point where it's
+% desynced. Transmit a load of random data encoded using DMPPM, and see how
+% long it takes to recover to the synced state.
+
