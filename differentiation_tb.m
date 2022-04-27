@@ -20,7 +20,7 @@ yyaxis left
 
 % Low-pass using a filter with cutoff = 2GHz
 % After this, pass it thru a differentiator
-lpd = lowpass(diff(lowpass(sigout_hilbert,2e9,fs)),0.5e9,fs);
+lpd = lowpass(diff(lowpass(sigout_hilbert,2e9,fs)),0.5);
 plot(lpd);
 yyaxis right;
 % Now the hyteresis comparator gives a more accurate timing result

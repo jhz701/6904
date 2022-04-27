@@ -25,13 +25,11 @@ function sync_data_pulse = DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc
     pulse_duration_sampled = 0:1/fs:pulse_duration-1/fs;
     sync_data_pulse(length(sync_position_uncertainty):length(sync_position_uncertainty)+length(pulse_duration_sampled)-1) = gaussian_pulse(n,fs,fc,pulse_duration,impairment.power*an);%sync pulse
     data_dec = 0;
-    %for i = M:-1:1
-    %    data_dec = data_dec + data_bits(i)*2^(i-1);
-    %end
-    data_dec = bit2int(data_bits',5,1);
+    for i = M:-1:1
+        data_dec = data_dec + data_bits(i)*2^(i-1);
+    end
     nd_start = (length(tguard_sampled)+length(tstep_sampled)*data_dec                               )+length(data_position_uncertainty)  -length(sync_position_uncertainty);
     nd_end   = (length(tguard_sampled)+length(tstep_sampled)*data_dec+length(pulse_duration_sampled))+length(data_position_uncertainty)-1-length(sync_position_uncertainty);
-    
     fprintf("Actual %d\n", nd_start);
     sync_data_pulse(nd_start:nd_end) = gaussian_pulse(n,fs,fc,pulse_duration,an*impairment.power);
    

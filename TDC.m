@@ -1,4 +1,11 @@
-%%
+%% TDC Single Shot
+% An example input can be:
+%
+%  /^^^^^\_____/^^^^\___________________/^^^^^\...
+%  \Sync       \Data                    \Next Sync
+%                    \Guard (Longer than anything else)
+% 
+% It is very different from the paper. Use "TDC_continuous.m" instead. 
 % The input is already passed through a hysteresis comparator (1/0 sequence)
 % ARGUMENTS
 %   sig:    Post-Comparator Data Stream @ fs (logical)
