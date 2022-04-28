@@ -19,12 +19,12 @@
 % You may want to start at the center of the first pulse (?), or the edge (?) 
 % It's not determined yet I guess
 
-function dso = TDC_advanced (sig, pat, fs, tres, tsync, tmiw)
+function dso = TDC_advanced (sig, pat, fs, tres, tsync, tmiw, tframe)
     % Constants
     ndframe = fs*tframe;                        % Length of each data frame
     nframe  = floor(length(sig(:))/ndframe);    % Total number of frames
     ndres   = fs*tres;                          % length of DMPPM resolution
-    dstream = zeros([2, nframe]);
+    dso = zeros([2, nframe]);
 
     % Pattern FSM
     pfsm_ptr       = 1;
@@ -33,8 +33,7 @@ function dso = TDC_advanced (sig, pat, fs, tres, tsync, tmiw)
     
     % TDC
     ds_ptr       = 1;   % Data stream
-    tdc_started  = 0;
-    tdc_startpos = 0;   % Use the absolute value    
+    tdc_started  = 0; 
     % TDC Inhibit Control
     tdc_inhibit            = 0;
     tdc_inhibit_countdown  = tsync * fs;    % Sync Inhibit, i.e. "Recovery Clock"
@@ -64,6 +63,7 @@ function dso = TDC_advanced (sig, pat, fs, tres, tsync, tmiw)
             if(tdc_started==0)
                 % Looking for SYNC
                 if((sig(i)==0)&&(sig(i+1)==1))
+                    fprintf("SYNC@%d\n",i);
                     % SYNC found, start
                     tdc_started       = 1;
                     tdc_MIW_countdown = tmiw * fs;  % Reset MIW Inhibit
@@ -73,15 +73,23 @@ function dso = TDC_advanced (sig, pat, fs, tres, tsync, tmiw)
                 % Looking for Data
                 if(tdc_MIW_countdown<=0)
                     % MIW is done, ready for data capture
-                    if(sig(i+1)==1)
-                        d = round(log2((i-last_position)/ndres)); % We got one
+                    if((sig(i)==0)&&(sig(i+1)==1))
+                        % Data Pulse Found
+                        fprintf("DATA@%d\n",i);
+                        d = round((i-tdc_last_position)/ndres); % We got one
                         if(pfsm_status<=31)
                             validity = 1;       % This is a data pulse
                         else
                             validity = 0;       % SYNC failed, we're not looking at a data pulse
                         end
                         dso(:,ds_ptr) = [d, validity];  % Append Data
+                        ds_ptr = ds_ptr + 1;
+                        tdc_started = 0;
+                        tdc_inhibit = 1;
+                        tdc_inhibit_countdown = tsync*fs;
                     end
+                else
+                    tdc_MIW_countdown = tdc_MIW_countdown - 1;
                 end
             end
         end

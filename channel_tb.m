@@ -9,6 +9,7 @@ setup.rayleighVelocity= 0;
 setup.flatAttenuation = 0;
 setup.multiPathSetup = [[0.1,1e-9];[0.2,2e-9];[0.3,3e-9]];
 %% symbol gen
+
 data_test = [0 3 7 11 15 19 23 27 31];
 
 n = 10; %10th order derivative
@@ -85,7 +86,9 @@ figure(3);
 yyaxis left;
 sigout_hilbert = abs(hilbert(sigout_rx));
 plot(sigout_hilbert);
-
+sigout_rx_q = hysteresis(sigout_hilbert, 3e-4, 1e-4);
+yyaxis right;
+plot(sigout_rx_q);
 
 %yyaxis right;
 %plot(pattern);
@@ -95,3 +98,6 @@ plot(sigout_hilbert);
 % desynced. Transmit a load of random data encoded using DMPPM, and see how
 % long it takes to recover to the synced state.
 
+%% TDC Test
+dso = TDC_advanced(sigout_rx_q, pattern, fs, tstep,0.1e-9, 0.1e-9, frame);
+dso = dso - 35;

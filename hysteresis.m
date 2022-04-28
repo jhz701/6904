@@ -5,8 +5,8 @@ function sigOut = hysteresis(sig, hi, lo)
         lo = hi;
         hi = t;
     end
-    siglen = length(sig(:))
-    sigOut = zeros(size(sig(:)))
+    siglen = length(sig(:));
+    sigOut = zeros(size(sig(:)));
     up_dnn = 1;
     for i = 1:siglen
         if((up_dnn==1)&&(sig(i)<lo))
