@@ -19,7 +19,6 @@
 % You may want to start at the center of the first pulse (?), or the edge (?) 
 % It's not determined yet I guess
 
-% TODO: urgent, implement MIW
 function dso = TDC_advanced (sig, pat, fs, tres, tsync, tmiw)
     % Constants
     ndframe = fs*tframe;                        % Length of each data frame
@@ -53,7 +52,7 @@ function dso = TDC_advanced (sig, pat, fs, tres, tsync, tmiw)
         end
 
         if(tdc_inhibit)
-            % TDC is inhibited from starting
+            % TDC is inhibited from starting, this is a part of an async clock gen
             tdc_inhibit_countdown = tdc_inhibit_countdown - 1;
             if(tdc_inhibit_countdown<=0)
                 % Reset inhibit, the tdc is now armed, waiting for the next pulse as the start pulse
@@ -67,7 +66,8 @@ function dso = TDC_advanced (sig, pat, fs, tres, tsync, tmiw)
                 if((sig(i)==0)&&(sig(i+1)==1))
                     % SYNC found, start
                     tdc_started       = 1;
-                    tdc_last_position = i;  % Record the starting position
+                    tdc_MIW_countdown = tmiw * fs;  % Reset MIW Inhibit
+                    tdc_last_position = i;          % Record the starting position
                 end
             else
                 % Looking for Data
