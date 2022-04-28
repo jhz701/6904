@@ -43,30 +43,13 @@ function dso = TDC_advanced (sig, pat, fs, tres, tsync, tmiw)
     tdc_last_position      = 0;
     % Main Loop
     for i=1:length(sig(:))-1
-        % Pattern FSM
+        % Pattern FSM, for validation only (not physical)
         if(pfsm_countdown<=1) 
             pfsm_ptr       = pfsm_ptr + 1;
             pfsm_status    = pat(1, pfsm_ptr);
             pfsm_countdown = pat(2, pfsm_ptr);
         else
             pfsm_countdown = pfsm_countdown - 1;
-        end
-
-        % Posedge Detector
-        if((sig(i)==0)&&(sig(i+1)==1))
-            if(tdc_started) 
-                % We're looking for data now
-                d   = round(log2((i-last_position)/ndres));
-                if(pfsm_status<=31)
-                    validity = 1;
-                else                
-                    validity = 0;
-                end
-                dso(:, ds_ptr) = [d, validity];
-            else
-                % sync
-
-            end
         end
 
         if(tdc_inhibit)
@@ -79,11 +62,27 @@ function dso = TDC_advanced (sig, pat, fs, tres, tsync, tmiw)
                 tdc_inhibit           = 0;
             end
         else
-            % TDC is armed for sync
-            if((sig(i)==0)&&(sig(i+1)==1))
-                % This is the sync
-                tdc_started       = 1;
-                tdc_last_position = i;  % Record the starting position
+            if(tdc_started==0)
+                % Looking for SYNC
+                if((sig(i)==0)&&(sig(i+1)==1))
+                    % SYNC found, start
+                    tdc_started       = 1;
+                    tdc_last_position = i;  % Record the starting position
+                end
+            else
+                % Looking for Data
+                if(tdc_MIW_countdown<=0)
+                    % MIW is done, ready for data capture
+                    if(sig(i+1)==1)
+                        d = round(log2((i-last_position)/ndres)); % We got one
+                        if(pfsm_status<=31)
+                            validity = 1;       % This is a data pulse
+                        else
+                            validity = 0;       % SYNC failed, we're not looking at a data pulse
+                        end
+                        dso(:,ds_ptr) = [d, validity];  % Append Data
+                    end
+                end
             end
         end
 
