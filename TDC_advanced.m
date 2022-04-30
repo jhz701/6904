@@ -19,8 +19,16 @@
 % You may want to start at the center of the first pulse (?), or the edge (?) 
 % It's not determined yet I guess
 
+% Some Nonidealities need to be considered: 
+% 1. tmiw, tsync random jitter - Small
+% 2. tmiw, tsync fixed offset  - Large
+% The rest (e.g. aperture uncertainty) should be taken-care-of in the comparator 
+
 function dso = TDC_advanced (sig, pat, fs, tres, tsync, tmiw, tframe)
+
+
     % Constants
+    global DEBUG_PRINT_ENABLE;                  % Set this to 1 to enable printout
     ndframe = fs*tframe;                        % Length of each data frame
     nframe  = floor(length(sig(:))/ndframe);    % Total number of frames
     ndres   = fs*tres;                          % length of DMPPM resolution
@@ -56,14 +64,16 @@ function dso = TDC_advanced (sig, pat, fs, tres, tsync, tmiw, tframe)
             if(tdc_inhibit_countdown<=0)
                 % Reset inhibit, the tdc is now armed, waiting for the next pulse as the start pulse
                 tdc_started           = 0;
-                tdc_inhibit_countdown = tsync;
+                tdc_inhibit_countdown = tsync*fs;
                 tdc_inhibit           = 0;
             end
         else
             if(tdc_started==0)
                 % Looking for SYNC
                 if((sig(i)==0)&&(sig(i+1)==1))
-                    fprintf("SYNC@%d\n",i);
+                    if(DEBUG_PRINT_ENABLE)
+                        fprintf("SYNC@%d\n",i);
+                    end
                     % SYNC found, start
                     tdc_started       = 1;
                     tdc_MIW_countdown = tmiw * fs;  % Reset MIW Inhibit
@@ -75,7 +85,9 @@ function dso = TDC_advanced (sig, pat, fs, tres, tsync, tmiw, tframe)
                     % MIW is done, ready for data capture
                     if((sig(i)==0)&&(sig(i+1)==1))
                         % Data Pulse Found
-                        fprintf("DATA@%d\n",i);
+                        if(DEBUG_PRINT_ENABLE)
+                            fprintf("DATA@%d\n",i);
+                        end
                         d = round((i-tdc_last_position)/ndres); % We got one
                         if(pfsm_status<=31)
                             validity = 1;       % This is a data pulse
@@ -89,6 +101,7 @@ function dso = TDC_advanced (sig, pat, fs, tres, tsync, tmiw, tframe)
                         tdc_inhibit_countdown = tsync*fs;
                     end
                 else
+                    % TDC input is inhibited by MIW
                     tdc_MIW_countdown = tdc_MIW_countdown - 1;
                 end
             end

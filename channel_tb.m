@@ -1,5 +1,8 @@
 clear all;
 close all;
+
+global DEBUG_PRINT_ENABLE;
+DEBUG_PRINT_ENABLE = 0;
 %%
 setup = struct;
 setup.fs = 100e9;
@@ -17,12 +20,16 @@ fs = 100e9; %sampling frequency
 fc = 5e9; % center frequency
 frame = 10e-9;% 10ns frame
 an = 2e-114;% scaling factor
-frame_num = length(data_test);% frames of data
+% frame_num = length(data_test);% frames of data
+frame_num = 1000;
 RBW = 1e-6/(frame*frame_num); %resolution bw in MHz
 pulse_duration = 1.5e-9;% duration for each pulse
 impairment = struct;
-sigma_sync = 1;% sync pulse position uncertainty being 1*(1/fs)
-sigma_data = 1;% data pulse position uncertainty being 1*(1/fs)
+%sigma_sync = 1;% sync pulse position uncertainty being 1*(1/fs)
+%sigma_data = 1;% data pulse position uncertainty being 1*(1/fs)
+%sigma_power = 0.01;% pulse data uncertainty being 1% nominal value
+sigma_sync = 0.1;% sync pulse position uncertainty being 1*(1/fs)
+sigma_data = 0.1;% data pulse position uncertainty being 1*(1/fs)
 sigma_power = 0.01;% pulse data uncertainty being 1% nominal value
 tguard = 3.5e-9;% multipath guard time
 tstep = 0.1e-9;% data step
@@ -49,11 +56,14 @@ nstep_tgl  = (tguard)*fs;
 nstep_data = (tstep*31*fs);
 nstep_tgr  = (frame*fs)-nstep_sync-nstep_tgl-nstep_data;
 pattern    = [];
-
+dtx        = [];
 for i = 1:frame_num
-    %data = randi(32)-1;
-    data = data_test(i);
-    fprintf("DB@%d:\t%X\n",i,data);
+    data = randi(32)-1;
+    % data = data_test(i);
+    dtx = [dtx data];
+    if(DEBUG_PRINT_ENABLE)
+        fprintf("DB@%d:\t%X\n",i,data);
+    end
     data_bits = de2bi(data,5,'left-msb'); %random data gen and convert to binary
     impairment.datapulse = round(normrnd(0,sigma_data))*(1/fs);% datapulse uncertainty
     impairment.syncpulse = abs(round(normrnd(0,sigma_sync))*(1/fs));% syncpulse uncertainty
@@ -99,5 +109,11 @@ plot(sigout_rx_q);
 % long it takes to recover to the synced state.
 
 %% TDC Test
-dso = TDC_advanced(sigout_rx_q, pattern, fs, tstep,0.1e-9, 0.1e-9, frame);
-dso = dso - 35;
+dso = TDC_advanced(sigout_rx_q, pattern, fs, tstep, 0.1e-9, 0.1e-9, frame);
+drx       = (dso(1,:) - 35);
+drx_valid = (dso(2,:) == 1);
+dtrx_difference = find(drx~=dtx);
+ber = (length(dtrx_difference)/frame_num);
+fprintf("TRX cycle finished. Words sent: %d, BER: %.1f%%\n", frame_num, ber*100);
+
+

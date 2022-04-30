@@ -15,6 +15,7 @@
 % frame is the duration of the entire symbol
 % impairment: struct with power uncertainty and data&sync pulse position ucertainty
 function sync_data_pulse = DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment)
+    global DEBUG_PRINT_ENABLE;
     M = length(data_bits); %bits/symbol
     time = 0:1/fs:frame-1/fs; % digitized time
     data_position_uncertainty = 0:1/fs:impairment.datapulse; % pulse uncertainty digitized
@@ -31,8 +32,9 @@ function sync_data_pulse = DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc
     data_dec = bit2int(data_bits',5,1);
     nd_start = (length(tguard_sampled)+length(tstep_sampled)*data_dec                               )+length(data_position_uncertainty)  -length(sync_position_uncertainty);
     nd_end   = (length(tguard_sampled)+length(tstep_sampled)*data_dec+length(pulse_duration_sampled))+length(data_position_uncertainty)-1-length(sync_position_uncertainty);
-    
-    fprintf("Actual %d\n", nd_start);
+    if(DEBUG_PRINT_ENABLE)
+        fprintf("Actual %d\n", nd_start);
+    end
     sync_data_pulse(nd_start:nd_end) = gaussian_pulse(n,fs,fc,pulse_duration,an*impairment.power);
    
 end
