@@ -13,7 +13,7 @@ setup.flatAttenuation = 0;
 setup.multiPathSetup = [[0.1,1e-9];[0.2,2e-9];[0.3,3e-9]];
 %% symbol gen
 tic
-fprintf("Symbol Gen...    ");
+fprintf("Symbol Gen ");
 data_test = [0 3 7 11 15 19 23 27 31];
 
 n = 10; %10th order derivative
@@ -22,15 +22,12 @@ fc = 5e9; % center frequency
 frame = 10e-9;% 10ns frame
 an = 2e-114;% scaling factor
 % frame_num = length(data_test);% frames of data
-frame_num = 100;
+frame_num = 1000;
 RBW = 1e-6/(frame*frame_num); %resolution bw in MHz
 pulse_duration = 1.5e-9;% duration for each pulse
 impairment = struct;
-%sigma_sync = 1;% sync pulse position uncertainty being 1*(1/fs)
-%sigma_data = 1;% data pulse position uncertainty being 1*(1/fs)
-%sigma_power = 0.01;% pulse data uncertainty being 1% nominal value
-sigma_sync = 0.1;% sync pulse position uncertainty being 1*(1/fs)
-sigma_data = 0.1;% data pulse position uncertainty being 1*(1/fs)
+sigma_sync = 1;% sync pulse position uncertainty being 1*(1/fs)
+sigma_data = 1;% data pulse position uncertainty being 1*(1/fs)
 sigma_power = 0.01;% pulse data uncertainty being 1% nominal value
 tguard = 3.5e-9;% multipath guard time
 tstep = 0.1e-9;% data step
@@ -58,7 +55,13 @@ nstep_tgr  = (frame*fs)-nstep_sync-nstep_tgl-nstep_data;
 pattern    = zeros(2, 4*frame_num);
 pulse      = zeros(1, frame_num*(frame*fs));    % The speedup of this modification is not significant...
 dtx        = zeros(1, frame_num);
+progress   = 0;
 for i = 1:frame_num
+    progress = progress+1;
+    if(progress==50)
+        fprintf("%d ", i);
+        progress = 0;
+    end
     data = randi(32)-1;
     % data = data_test(i);
     dtx(i) = data;
@@ -100,9 +103,8 @@ figure(3);
 yyaxis left;
 sigout_hilbert = abs(hilbert(sigout_rx));
 plot(sigout_hilbert);
-sigout_rx_q = hysteresis(sigout_hilbert, 3e-4, 1e-4);
 yyaxis right;
-plot(sigout_rx_q);
+%plot(sigout_rx_q);
 
 %yyaxis right;
 %plot(pattern);
@@ -115,7 +117,8 @@ toc
 %% TDC Test
 tic
 fprintf("RX...            ");
-dso = TDC_advanced(sigout_rx_q, pattern, fs, tstep, 0.1e-9, 0.1e-9, frame);
+sigout_rx_q = hysteresis(lowpass(sigout_hilbert, 0.01), 2.0e-4, 1e-4);
+dso = TDC_advanced(sigout_rx_q, pattern, fs, tstep, tguard/1.1, tguard/1.1, frame);
 toc
 drx       = (dso(1,:) - 35);
 drx_valid = (dso(2,:) == 1);
