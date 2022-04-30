@@ -14,9 +14,9 @@
 
 % frame is the duration of the entire symbol
 % impairment: struct with power uncertainty and data&sync pulse position ucertainty
-function sync_data_pulse = DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment)
+function sync_data_pulse = DMPPM_symbol_gen(data_word,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment)
     global DEBUG_PRINT_ENABLE;
-    M = length(data_bits); %bits/symbol
+    M = 5; %bits/symbol
     time = 0:1/fs:frame-1/fs; % digitized time
     data_position_uncertainty = 0:1/fs:impairment.datapulse; % pulse uncertainty digitized
     sync_position_uncertainty = 0:1/fs:impairment.syncpulse; % sync pulse uncertainty
@@ -25,11 +25,10 @@ function sync_data_pulse = DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc
     tguard_sampled = 0:1/fs:tguard-1/fs;
     pulse_duration_sampled = 0:1/fs:pulse_duration-1/fs;
     sync_data_pulse(length(sync_position_uncertainty):length(sync_position_uncertainty)+length(pulse_duration_sampled)-1) = gaussian_pulse(n,fs,fc,pulse_duration,impairment.power*an);%sync pulse
-    data_dec = 0;
     %for i = M:-1:1
     %    data_dec = data_dec + data_bits(i)*2^(i-1);
     %end
-    data_dec = bit2int(data_bits',5,1);
+    data_dec = data_word;
     nd_start = (length(tguard_sampled)+length(tstep_sampled)*data_dec                               )+length(data_position_uncertainty)  -length(sync_position_uncertainty);
     nd_end   = (length(tguard_sampled)+length(tstep_sampled)*data_dec+length(pulse_duration_sampled))+length(data_position_uncertainty)-1-length(sync_position_uncertainty);
     if(DEBUG_PRINT_ENABLE)

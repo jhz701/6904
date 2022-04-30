@@ -22,7 +22,7 @@ fc = 5e9; % center frequency
 frame = 10e-9;% 10ns frame
 an = 2e-114;% scaling factor
 % frame_num = length(data_test);% frames of data
-frame_num = 1000;
+frame_num = 10000;
 RBW = 1e-6/(frame*frame_num); %resolution bw in MHz
 pulse_duration = 1.5e-9;% duration for each pulse
 sigma_sync = 0.1;% sync pulse position uncertainty being 1*(1/fs)
@@ -35,7 +35,6 @@ tguard = 3.5e-9;% multipath guard time
 tstep = 0.1e-9;% data step
 r = 1; %transmitter and receiver are 1m away
 random_data = [];
-pulse = [];
 % Generate a separate stream for locking dection
 % Region Type
 % 0~31: data code
@@ -69,13 +68,13 @@ parfor i = 1:frame_num
     %if(DEBUG_PRINT_ENABLE)
     %    fprintf("DB@%d:\t%X\n",i,data);    
     %end
-    data_bits = de2bi(data,5,'left-msb');                            % Convert to binary
+    % data_bits = de2bi(data,5,'left-msb');                            % Convert to binary
     impairment = struct;
     impairment.datapulse =     round(normrnd(0,sigma_data))*(1/fs);  % datapulse timing uncertainty
     impairment.syncpulse = abs(round(normrnd(0,sigma_sync))*(1/fs)); % syncpulse timing uncertainty
     impairment.power     = abs(normrnd(1,sigma_power)); % pulse power uncertainty
     %pulse((i-1)*npulse+1:i*npulse) = (DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment)); 
-    pulse = [pulse (DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment))];
+    pulse = [pulse (DMPPM_symbol_gen(data,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment))];
     patternlet = [[32 nstep_sync]' [33 nstep_tgl]' [data nstep_data]' [34 nstep_tgr]'];
     %pattern(:,(i-1)*4+1:(i)*4) = patternlet;
     pattern = [pattern patternlet];
@@ -96,22 +95,8 @@ toc
 %% Run it thru a channel
 tic
 fprintf("Channel Model... ");
-figure(2);
-%subplot(2,1,1);
 sigout_rx = channel(pulse,setup);
-%hold off;
-plot(sigout_rx);
-% Envelope Detection
-figure(3);
-yyaxis left;
 sigout_hilbert = abs(hilbert(sigout_rx));
-plot(sigout_hilbert);
-yyaxis right;
-%plot(sigout_rx_q);
-
-%yyaxis right;
-%plot(pattern);
-%ylim([-1,4]);
 
 % When testing, we can first force the TDC to start at a point where it's
 % desynced. Transmit a load of random data encoded using DMPPM, and see how
@@ -120,7 +105,7 @@ toc
 %% TDC Test
 tic
 fprintf("RX...            ");
-sigout_rx_q = hysteresis(lowpass(sigout_hilbert, 0.1), 2.0e-4, 1e-4);
+sigout_rx_q = hysteresis(lowpass(sigout_hilbert, 0.1), 2.5e-4, 0.5e-4);
 dso = TDC_advanced(sigout_rx_q, pattern, fs, tstep, tguard/1.1, tguard/1.1, frame);
 toc
 drx       = (dso(1,:) - 35);
