@@ -12,7 +12,8 @@ setup.rayleighVelocity= 0;
 setup.flatAttenuation = 0;
 setup.multiPathSetup = [[0.1,1e-9];[0.2,2e-9];[0.3,3e-9]];
 %% symbol gen
-
+tic
+fprintf("Symbol Gen...    ");
 data_test = [0 3 7 11 15 19 23 27 31];
 
 n = 10; %10th order derivative
@@ -21,7 +22,7 @@ fc = 5e9; % center frequency
 frame = 10e-9;% 10ns frame
 an = 2e-114;% scaling factor
 % frame_num = length(data_test);% frames of data
-frame_num = 1000;
+frame_num = 100;
 RBW = 1e-6/(frame*frame_num); %resolution bw in MHz
 pulse_duration = 1.5e-9;% duration for each pulse
 impairment = struct;
@@ -36,8 +37,6 @@ tstep = 0.1e-9;% data step
 r = 1; %transmitter and receiver are 1m away
 random_data = [];
 pulse = [];
-
-
 % Generate a separate stream for locking dection
 % Region Type
 % 0~31: data code
@@ -51,16 +50,18 @@ pulse = [];
 %patternlet = [patternlet repelem([3],nstep_tgr)];
 % todo: encode noidealities into this system
 % The pattern is encoded in this way to better utilize the instruction cache
+npulse     = round(frame*fs);
 nstep_sync = pulse_duration/2*fs;
 nstep_tgl  = (tguard)*fs;
 nstep_data = (tstep*31*fs);
 nstep_tgr  = (frame*fs)-nstep_sync-nstep_tgl-nstep_data;
-pattern    = [];
-dtx        = [];
+pattern    = zeros(2, 4*frame_num);
+pulse      = zeros(1, frame_num*(frame*fs));    % The speedup of this modification is not significant...
+dtx        = zeros(1, frame_num);
 for i = 1:frame_num
     data = randi(32)-1;
     % data = data_test(i);
-    dtx = [dtx data];
+    dtx(i) = data;
     if(DEBUG_PRINT_ENABLE)
         fprintf("DB@%d:\t%X\n",i,data);
     end
@@ -68,11 +69,10 @@ for i = 1:frame_num
     impairment.datapulse = round(normrnd(0,sigma_data))*(1/fs);% datapulse uncertainty
     impairment.syncpulse = abs(round(normrnd(0,sigma_sync))*(1/fs));% syncpulse uncertainty
     impairment.power = abs(normrnd(1,sigma_power)); % pulse power uncertainty
-    
-    pulse = [pulse (DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment))]; 
-    
+    pulse((i-1)*npulse+1:i*npulse) = (DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment)); 
+    % pulse = [pulse (DMPPM_symbol_gen(data_bits,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment))];
     patternlet = [[32 nstep_sync]' [33 nstep_tgl]' [data nstep_data]' [34 nstep_tgr]'];
-    pattern    = [pattern patternlet];
+    pattern(:,(i-1)*4+1:(i)*4) = patternlet;
 
     % random_data = [random_data data];
 end
@@ -85,7 +85,11 @@ plot(pulse);
 %     sig = [sig pulse zeros(1,padding)];
 % end
 % plot(sig);
+
+toc
 %% Run it thru a channel
+tic
+fprintf("Channel Model... ");
 figure(2);
 %subplot(2,1,1);
 sigout_rx = channel(pulse,setup);
@@ -107,9 +111,12 @@ plot(sigout_rx_q);
 % When testing, we can first force the TDC to start at a point where it's
 % desynced. Transmit a load of random data encoded using DMPPM, and see how
 % long it takes to recover to the synced state.
-
+toc
 %% TDC Test
+tic
+fprintf("RX...            ");
 dso = TDC_advanced(sigout_rx_q, pattern, fs, tstep, 0.1e-9, 0.1e-9, frame);
+toc
 drx       = (dso(1,:) - 35);
 drx_valid = (dso(2,:) == 1);
 dtrx_difference = find(drx~=dtx);
