@@ -12,10 +12,10 @@ for i=1:target_len
     img_data_32(i) = word;
 end
 
-% Deserialize
+%% Deserialize
 img_data_recovered = zeros(1,target_len*5);
 for i=1:target_len
-    word = double(img_data_32(i));
+    word = double(drx(i));
     for j=1:5
         b5 = floor(word/16);
         img_data_recovered((i-1)*5+j) = b5;
@@ -26,9 +26,21 @@ end
 % Remove Padding
 img_data_recovered(orig_len+1:orig_len+pad_len) = [];
 
-%%
+parfor i=1:length(img_data_recovered)
+    if(img_data_recovered(i)<0)
+        img_data_recovered(i) = 0;
+    end
+    if(img_data_recovered(i)>1)
+        img_data_recovered(i) = 1;
+    end
+end
 img_rx = data2image(img_data_recovered, row_im, col_im, third_im, 2);
 
 % Show image
 figure();
+subplot(1,2,1);
+imshow(im2gray(image));
+title('Original');
+subplot(1,2,2);
 imshow(uint8(img_rx));
+title('Received');
