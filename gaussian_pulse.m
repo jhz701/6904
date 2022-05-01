@@ -13,13 +13,13 @@
 % mask
 
 function [pulse] = gaussian_pulse(n,fs,fc,pulse_duration,an)
-sigma=sqrt(n)/(2*pi*fc);
-syms t
-variance=sigma^2;
-x = an*1/(sqrt(2*pi*variance))*(exp(-(t)^2/(2*variance)));
-single_pulse = matlabFunction(diff(x,t,n)); %pulse generation
-duration=0:1/fs:(pulse_duration-1/fs);
-pulse = single_pulse(duration-pulse_duration/2);
+    sigma=sqrt(n)/(2*pi*fc);
+    syms t
+    variance=sigma^2;
+    x = an*1/(sqrt(2*pi*variance))*(exp(-(t)^2/(2*variance)));
+    single_pulse = matlabFunction(diff(x,t,n)); %pulse generation
+    duration=0:1/fs:(pulse_duration-1/fs);
+    pulse = single_pulse(duration-pulse_duration/2);
 end
 
 
