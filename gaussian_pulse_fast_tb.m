@@ -4,7 +4,10 @@ fs     = 100e9;
 fc     = 5e9; % center frequency
 n      = 10;
 an     = 2e-114;% scaling factor
-pulselet = gaussian_pulse_fast(n,fs,fc,tpulse,an);
-pulse = [zeros(1,fs*(tframe-tpulse)/2) pulselet zeros(1,fs*(tframe-tpulse)/2)];
+pulselet = gaussian_pulse_fast(n,fs,fc,tpulse,an/9.5447e-111);
+pulse_cmp = gaussian_pulse(n,fs,fc,tpulse,an);
 figure();
-plot(pulse);
+hold off;
+plot(pulselet);
+hold on;
+plot(pulse_cmp);

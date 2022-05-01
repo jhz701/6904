@@ -1,0 +1,36 @@
+%% DMPPM_symbol_gen testbench
+
+n = 10; %10th order derivative
+fs = 100e9; %sampling frequency
+fc = 5e9; % center frequency
+frame = 10e-9;% 10ns frame
+an = 2e-114;% scaling factor
+sigma_sync = (10e-9)^2;% sync pulse position uncertainty being 1*(1/fs)
+sigma_data = (1000e-9)^2;% data pulse position uncertainty being 1*(1/fs)
+sigma_power = 0.01;% pulse data uncertainty being 1% nominal value
+tframe = 10e-9;% 10ns frame
+tguard = 3.5e-9;% multipath guard time
+tstep = 0.1e-9;% data step
+RBW = 1e-6/(frame*frame_num); %resolution bw in MHz
+tpulse = 1.5e-9;% duration for each pulse
+    
+tj_d_hat =     normrnd(0,sigma_data);
+tj_s_hat = abs(normrnd(0,sigma_sync));
+pv_hat   = abs(normrnd(1,sigma_power));
+impairment = struct;
+impairment.datapulse = 0;
+impairment.syncpulse = 0;
+impairment.power     = 1;
+pulse_ideal = DMPPM_symbol_gen_fast(16,tguard, tstep, tframe, n, fs, fc, tpulse, an, impairment);
+
+impairment.datapulse = tj_d_hat; % datapulse timing uncertainty
+impairment.syncpulse = tj_s_hat; % syncpulse timing uncertainty
+impairment.power     = pv_hat;   % pulse power uncertainty
+fprintf("tj_dp= %e s  tj_sp= %e s  pj= %e\n", impairment.datapulse, impairment.syncpulse, impairment.power);
+
+pulse_fast = DMPPM_symbol_gen_fast(16,tguard, tstep, tframe, n, fs, fc, tpulse, an, impairment);
+figure();
+hold off;
+plot(pulse_ideal);
+hold on;
+plot(pulse_fast);
