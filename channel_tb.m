@@ -13,8 +13,12 @@ setup.flatAttenuation = 0;
 setup.multiPathSetup = [[0.1,1e-9];[0.2,2e-9];[0.3,3e-9]];
 %% Encode Image
 tic
+mode_bw = 1;
 fprintf("S1: Image Encode... ");
 image = imread('Lenna.bmp');
+if(mode_bw)
+    image = im2gray(image);
+end
 [img_data, row_im, col_im, third_im] = image2data(image,2);
 orig_len   = length(img_data);
 target_len = ceil(orig_len/5);
@@ -47,8 +51,8 @@ tpulse     = 1.5e-9;% duration for each pulse
 %sigma_sync = 0.1;% sync pulse position uncertainty being 1*(1/fs)
 %sigma_data = 0.1;% data pulse position uncertainty being 1*(1/fs)
 %sigma_power = 0.01;% pulse data uncertainty being 1% nominal value
-sigma_sync = 2;% sync pulse position uncertainty being 1*(1/fs)
-sigma_data = 2;% data pulse position uncertainty being 1*(1/fs)
+sigma_sync = 0.5;% sync pulse position uncertainty being 1*(1/fs)
+sigma_data = 0.5;% data pulse position uncertainty being 1*(1/fs)
 sigma_power = 0.01;% pulse data uncertainty being 1% nominal value
 r = 1; %transmitter and receiver are 1m away
 random_data = [];
@@ -108,7 +112,7 @@ toc
 %% TDC Test
 tic
 fprintf("S4: RX... ");
-vth = 2.1e-4;
+vth = 1.2e-4;
 sigout_rx_q = hysteresis(lowpass(sigout_rx, 0.1), vth, -vth);
 nsigout = length(sigout_rx_q);
 lead = 0;
@@ -119,8 +123,9 @@ toc
 drx       = (dso(1,:) - 35);
 drx_valid = (dso(2,:) == 1);
 dtrx_difference = find(drx~=dtx);
-ber = (length(dtrx_difference)/nframe);
-fprintf("TRX cycle finished. Words sent: %d, BER: %e\n", nframe, ber);
+bern = length(dtrx_difference);
+ber = (bern/nframe);
+fprintf("TRX cycle finished. Words sent: %d, Error: %d, BER: %e\n", nframe, bern, ber);
 
 %% Decode Image
 tic
@@ -154,7 +159,7 @@ toc
 % Show image
 figure();
 subplot(1,2,1);
-imshow(im2gray(image));
+imshow(image);
 title('Original');
 subplot(1,2,2);
 imshow(uint8(img_rx));
