@@ -33,24 +33,23 @@ tic
 fprintf("S2: Symbol Gen... ");
 data_test = [0 3 7 11 15 19 23 27 31];
 
-n = 10; %10th order derivative
-fs = 100e9; %sampling frequency
-fc = 5e9; % center frequency
-frame = 10e-9;% 10ns frame
-an = 2e-114;% scaling factor
-% frame_num = length(data_test);% frames of data
-frame_num = 100;
-%frame_num = length(img_data_32);
-RBW = 1e-6/(frame*frame_num); %resolution bw in MHz
-pulse_duration = 1.5e-9;% duration for each pulse
+n      = 10; %10th order derivative
+fs     = 100e9; %sampling frequency
+fc     = 5e9; % center frequency
+tframe = 10e-9;% 10ns frame
+tguard = 3.5e-9;% multipath guard time
+tstep  = 0.1e-9;% data step
+an     = 2e-114;% scaling factor
+%nframe = 100;
+nframe = length(img_data_32);
+RBW = 1e-6/(tframe*nframe); %resolution bw in MHz
+tpulse     = 1.5e-9;% duration for each pulse
 %sigma_sync = 0.1;% sync pulse position uncertainty being 1*(1/fs)
 %sigma_data = 0.1;% data pulse position uncertainty being 1*(1/fs)
 %sigma_power = 0.01;% pulse data uncertainty being 1% nominal value
 sigma_sync = 1;% sync pulse position uncertainty being 1*(1/fs)
 sigma_data = 1;% data pulse position uncertainty being 1*(1/fs)
 sigma_power = 0.01;% pulse data uncertainty being 1% nominal value
-tguard = 3.5e-9;% multipath guard time
-tstep = 0.1e-9;% data step
 r = 1; %transmitter and receiver are 1m away
 random_data = [];
 
@@ -62,42 +61,40 @@ random_data = [];
 % 34:   tgr, Right Guard
 % todo: encode noidealities into this system
 % The pattern is encoded in this way to better utilize the instruction cache
-npulse     = round(frame*fs);
-nstep_sync = pulse_duration/2*fs;
+npulse     = round(tframe*fs);
+nstep_sync = tpulse/2*fs;
 nstep_tgl  = (tguard)*fs;
 nstep_data = (tstep*31*fs);
-nstep_tgr  = (frame*fs)-nstep_sync-nstep_tgl-nstep_data;
-dtx        = zeros(1, frame_num);
+nstep_tgr  = (tframe*fs)-nstep_sync-nstep_tgl-nstep_data;
+dtx        = zeros(1, nframe);
 progress   = 0;
-pulse = [];
-pulse_fast =[];
-pattern = [];
-
-parfor i = 1:frame_num
+pulse_fast = [];
+pattern    = [];
+impair_record = [[0 0 0]];
+parfor i = 1:nframe
     data = double(img_data_32(i));
     dtx(i) = data;
     %if(DEBUG_PRINT_ENABLE)
     %    fprintf("DB@%d:\t%X\n",i,data);    
     %end
-    impairment = struct;
+    impairment           = struct;
     impairment.datapulse =     round(normrnd(0,sigma_data))*(1/fs);  % datapulse timing uncertainty
     impairment.syncpulse = abs(round(normrnd(0,sigma_sync))*(1/fs)); % syncpulse timing uncertainty
-    impairment.power     = abs(normrnd(1,sigma_power)); % pulse power uncertainty
-    pulse = [pulse (DMPPM_symbol_gen(data,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment))];
-    pulse_fast = [pulse_fast (DMPPM_symbol_gen(data,tguard,tstep,frame,n,fs,fc,pulse_duration,an,impairment))];
-    
+    impairment.power     = abs(normrnd(1,sigma_power));              % pulse power uncertainty
+    pulse_fast = [pulse_fast (DMPPM_symbol_gen_fast(data,tguard,tstep,tframe,n,fs,fc,tpulse,an/9.5447e-111,impairment))];
+    impair_record = [impair_record [impairment.datapulse impairment.syncpulse impairment.power]];
     patternlet = [[32 nstep_sync]' [33 nstep_tgl]' [data nstep_data]' [34 nstep_tgr]'];
     pattern = [pattern patternlet];
 end
 toc
 tic
-pulse = FSPL(pulse,r,fs);
+pulse_fast = FSPL(pulse_fast,r,fs);
 toc
 
 %% Run it thru a channel
 tic
 fprintf("S3: Channel Model... ");
-sigout_rx = channel(pulse,setup);
+sigout_rx = channel(pulse_fast,setup);
 sigout_hilbert = abs(hilbert(sigout_rx));
 
 % When testing, we can first force the TDC to start at a point where it's
@@ -107,14 +104,19 @@ toc
 %% TDC Test
 tic
 fprintf("S4: RX... ");
-sigout_rx_q = hysteresis(lowpass(sigout_rx, 0.1), 2e-4, 1e-4);
-dso = TDC_advanced(sigout_rx_q, pattern, fs, tstep, tguard/2, tguard/2, frame);
+vth = 2e-4;
+sigout_rx_q = hysteresis(lowpass(sigout_rx, 0.1), vth, -vth);
+nsigout = length(sigout_rx_q);
+lead = 1;
+sigout_rx_q = [zeros(1,lead) sigout_rx_q'];
+sigout_rx_q(nsigout:nsigout+lead) = [];
+dso = TDC_advanced(sigout_rx_q, pattern, fs, tstep, tguard-tpulse/2, tguard/2, tframe);
 toc
 drx       = (dso(1,:) - 35);
 drx_valid = (dso(2,:) == 1);
 dtrx_difference = find(drx~=dtx);
-ber = (length(dtrx_difference)/frame_num);
-fprintf("TRX cycle finished. Words sent: %d, BER: %e\n", frame_num, ber);
+ber = (length(dtrx_difference)/nframe);
+fprintf("TRX cycle finished. Words sent: %d, BER: %e\n", nframe, ber);
 
 %% Decode Image
 tic

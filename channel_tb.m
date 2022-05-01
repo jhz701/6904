@@ -15,7 +15,7 @@ setup.multiPathSetup = [[0.1,1e-9];[0.2,2e-9];[0.3,3e-9]];
 tic
 fprintf("S1: Image Encode... ");
 image = imread('Lenna.bmp');
-[img_data, row_im, col_im, third_im] = image2data(im2gray(image),2);
+[img_data, row_im, col_im, third_im] = image2data(image,2);
 orig_len   = length(img_data);
 target_len = ceil(orig_len/5);
 pad_len    = target_len*5 - orig_len;
@@ -40,15 +40,15 @@ tframe = 10e-9;% 10ns frame
 tguard = 3.5e-9;% multipath guard time
 tstep  = 0.1e-9;% data step
 an     = 2e-114;% scaling factor
-nframe = 100;
-%nframe = length(img_data_32);
+%nframe = 100;
+nframe = length(img_data_32);
 RBW = 1e-6/(tframe*nframe); %resolution bw in MHz
 tpulse     = 1.5e-9;% duration for each pulse
 %sigma_sync = 0.1;% sync pulse position uncertainty being 1*(1/fs)
 %sigma_data = 0.1;% data pulse position uncertainty being 1*(1/fs)
 %sigma_power = 0.01;% pulse data uncertainty being 1% nominal value
-sigma_sync = 0.1;% sync pulse position uncertainty being 1*(1/fs)
-sigma_data = 0.1;% data pulse position uncertainty being 1*(1/fs)
+sigma_sync = 2;% sync pulse position uncertainty being 1*(1/fs)
+sigma_data = 2;% data pulse position uncertainty being 1*(1/fs)
 sigma_power = 0.01;% pulse data uncertainty being 1% nominal value
 r = 1; %transmitter and receiver are 1m away
 random_data = [];
@@ -70,7 +70,9 @@ dtx        = zeros(1, nframe);
 progress   = 0;
 pulse_fast = [];
 pattern    = [];
-
+impair_record_tjdp = [];
+impair_record_tjsp = [];
+impair_record_pj   = [];
 parfor i = 1:nframe
     data = double(img_data_32(i));
     dtx(i) = data;
@@ -82,7 +84,9 @@ parfor i = 1:nframe
     impairment.syncpulse = abs(round(normrnd(0,sigma_sync))*(1/fs)); % syncpulse timing uncertainty
     impairment.power     = abs(normrnd(1,sigma_power));              % pulse power uncertainty
     pulse_fast = [pulse_fast (DMPPM_symbol_gen_fast(data,tguard,tstep,tframe,n,fs,fc,tpulse,an/9.5447e-111,impairment))];
-    
+    impair_record_tjdp = [impair_record_tjdp impairment.datapulse];
+    impair_record_tjsp = [impair_record_tjsp impairment.syncpulse];
+    impair_record_pj   = [impair_record_pj   impairment.power    ];
     patternlet = [[32 nstep_sync]' [33 nstep_tgl]' [data nstep_data]' [34 nstep_tgr]'];
     pattern = [pattern patternlet];
 end
@@ -101,11 +105,16 @@ sigout_hilbert = abs(hilbert(sigout_rx));
 % desynced. Transmit a load of random data encoded using DMPPM, and see how
 % long it takes to recover to the synced state.
 toc
-% TDC Test
+%% TDC Test
 tic
 fprintf("S4: RX... ");
-sigout_rx_q = hysteresis(lowpass(sigout_rx, 0.1), 2e-4, 1e-4);
-dso = TDC_advanced(sigout_rx_q, pattern, fs, tstep, tguard/2, tguard/2, tframe);
+vth = 2.1e-4;
+sigout_rx_q = hysteresis(lowpass(sigout_rx, 0.1), vth, -vth);
+nsigout = length(sigout_rx_q);
+lead = 0;
+sigout_rx_q = [zeros(1,lead) sigout_rx_q'];
+sigout_rx_q(nsigout:nsigout+lead) = [];
+dso = TDC_advanced(sigout_rx_q, pattern, fs, tstep, tguard-tpulse/2, tguard/2, tframe);
 toc
 drx       = (dso(1,:) - 35);
 drx_valid = (dso(2,:) == 1);
