@@ -1,7 +1,8 @@
 function sigOut = channel(sig, setup)
     % SETTINGS:
     fs       = setup.fs;
-    regSNR   = setup.regSNR;    % Requested Regulated SNR (compared to the RX signal), log Scale
+    % regSNR   = setup.regSNR;    % Requested Regulated SNR (compared to the RX signal), log Scale
+    noise_power = setup.noise_power;
     fadeType = setup.fadeType;  % Currently Supported:
                                 %   'rayleigh':      Rayleigh Fade
                                 %   'rayleigh_pdp':
@@ -31,9 +32,10 @@ function sigOut = channel(sig, setup)
             warning('No fade type specified, no fading applied');
     end
 
-    sigEnergy = norm(sig(:))^2;             % Calculate the signal power
-    nosEnergy = sigEnergy/(10^(regSNR/10)); % Calculate the noise applied under a given SNR
-    nosVar    = nosEnergy/(length(sig(:))-1);
+    % sigEnergy = norm(sig(:))^2;             % Calculate the signal power
+    % nosEnergy = sigEnergy/(10^(regSNR/10)); % Calculate the noise applied under a given SNR
+    % nosVar    = nosEnergy/(length(sig(:))-1);
+    nosVar    = noise_power/(length(sig(:))-1);
     nosStd    = sqrt(nosVar);
     nos       = nosStd*randn(size(sig));
     sigOut    = sig + nos;

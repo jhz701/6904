@@ -1,30 +1,5 @@
-clear all;
-close all;
-
-global DEBUG_PRINT_ENABLE;
-DEBUG_PRINT_ENABLE = 0;
-%% SIMULATION SETUP
-setup = struct;
-setup.BW               = 2e9;       % BW of the transmitted signal
-setup.fs               = 100e9;     % Testbench Sampling Frequency
-setup.fc               = 5e9;       % Center Frequency
-setup.tframe           = 10e-9;     % Frame Duration (s)
-setup.tguard           = 3.5e-9;    % Anti-Multipath Guard Duration (s)
-setup.tstep            = 0.1e-9;    % Data Step (s)
-setup.tpulse           = 1.5e-9;    % Pulse Length (s)
-setup.pulse_order      = 10;        % n-th Order Gaussian Pulse
-setup.pulse_an         = 2e-4;      % Amplitude Scaling Factor
-setup.sigma_sync       = 0.001;     % sync pulse position uncertainty being 1*(1/fs)
-setup.sigma_data       = 0.001;     % data pulse position uncertainty being 1*(1/fs)
-setup.sigma_power      = 0.01;      % pulse data uncertainty being 1% nominal value
-setup.SNR              = 18;        % dB10
-setup.fadeType         = 'flat';    %
-setup.rayleighVelocity = 0;         
-setup.flatAttenuation  = 0;
-setup.multiPathSetup   = [[0.1,1e-9];[0.2,2e-9];[0.3,3e-9]];
-setup.mode_bw          = 1;         % Black & White Mode
-setup.fspl_distance_m  = 1;         % FSPL
-
+% returns the symbol error rate and how many symbols are incorrect
+function [SER, SERN] = system_top(setup)
 
 %% S1 Encode Image
 tic % -- S1 Timing
@@ -50,7 +25,6 @@ toc % -- S1 Timing
 %% S2 symbol gen
 tic % -- S2 Timing
 fprintf("S2: Symbol Gen... ");
-data_test = [0 3 7 11 15 19 23 27 31];
 
 n      = setup.pulse_order; % 10th order derivative
 fs     = setup.fs;          % sampling frequency
@@ -68,8 +42,6 @@ tpulse = setup.tpulse;      % duration for each pulse
 %sigma_data = 0.1;% data pulse position uncertainty being 1*(1/fs)
 %sigma_power = 0.01;% pulse data uncertainty being 1% nominal value
 
-random_data = [];
-
 % Generate a separate stream for locking dection
 % Region Type
 % 0~31: data code
@@ -78,13 +50,11 @@ random_data = [];
 % 34:   tgr, Right Guard
 % todo: encode noidealities into this system
 % The pattern is encoded in this way to better utilize the instruction cache
-npulse     = round(tframe*fs);
 nstep_sync = tpulse/2*fs;
 nstep_tgl  = (tguard)*fs;
 nstep_data = (tstep*31*fs);
 nstep_tgr  = (tframe*fs)-nstep_sync-nstep_tgl-nstep_data;
 dtx        = zeros(1, nframe);
-progress   = 0;
 signal_tx  = [];
 pattern    = [];
 % impair_record_tjdp = [];
@@ -97,9 +67,9 @@ parfor i = 1:nframe
     %    fprintf("DB@%d:\t%X\n",i,data);    
     %end
     impairment           = struct;
-    impairment.datapulse =     round(normrnd(0,sigma_data))*(1/fs);  % datapulse timing uncertainty
-    impairment.syncpulse = abs(round(normrnd(0,sigma_sync))*(1/fs)); % syncpulse timing uncertainty
-    impairment.power     = abs(normrnd(1,sigma_power));              % pulse power uncertainty
+    impairment.datapulse =     round(normrnd(0,setup.sigma_data))*(1/fs);  % datapulse timing uncertainty
+    impairment.syncpulse = abs(round(normrnd(0,setup.sigma_sync))*(1/fs)); % syncpulse timing uncertainty
+    impairment.power     = abs(normrnd(1,setup.sigma_power));              % pulse power uncertainty
     signal_tx = [signal_tx (DMPPM_symbol_gen_fast(data,tguard,tstep,tframe,n,fs,fc,tpulse,an,impairment))];
 %     impair_record_tjdp = [impair_record_tjdp impairment.datapulse];
 %     impair_record_tjsp = [impair_record_tjsp impairment.syncpulse];
@@ -149,49 +119,48 @@ dso = TDC_advanced(signal_rx_q, pattern, fs, tstep, tguard-tpulse/2, tguard/2, t
 toc % -- S4 Timing
 
 drx       = (dso(1,:) - 35);
-drx_valid = (dso(2,:) == 1);
 dtrx_difference = find(drx~=dtx);
-bern = length(dtrx_difference);
-ber  = (bern/nframe);
-fprintf("TRX cycle finished. Words sent: %d, Error: %d, BER: %e\n", nframe, bern, ber);
+SERN = length(dtrx_difference);
+SER  = (SERN/nframe);
+fprintf("TRX cycle finished. Words sent: %d, Error: %d, BER: %e\n", nframe, SERN, SER);
 
 %% Decode Image
-tic % -- S5 Timing
-fprintf('S5: Decode Image');
-% Deserialize
-img_data_recovered = zeros(1,target_len*5);
-for i=1:target_len
-    word = double(drx(i));
-    for j=1:5
-        b5 = floor(word/16);
-        img_data_recovered((i-1)*5+j) = b5;
-        word = (word - b5*16)*2;
-    end
-end
-
-% Remove Padding
-img_data_recovered(orig_len+1:orig_len+pad_len) = [];
-
-parfor i=1:length(img_data_recovered)
-    if(img_data_recovered(i)<0)
-        img_data_recovered(i) = 0;
-    end
-    if(img_data_recovered(i)>1)
-        img_data_recovered(i) = 1;
-    end
-end
-img_rx = data2image(img_data_recovered, row_im, col_im, third_im, 2);
-
-toc % -- S5 Timing
-
-% Show image
-figure();
-subplot(1,2,1);
-imshow(image);
-title('Original');
-subplot(1,2,2);
-imshow(uint8(img_rx));
-title('Received');
+% tic % -- S5 Timing
+% fprintf('S5: Decode Image');
+% % Deserialize
+% img_data_recovered = zeros(1,target_len*5);
+% for i=1:target_len
+%     word = double(drx(i));
+%     for j=1:5
+%         b5 = floor(word/16);
+%         img_data_recovered((i-1)*5+j) = b5;
+%         word = (word - b5*16)*2;
+%     end
+% end
+% 
+% % Remove Padding
+% img_data_recovered(orig_len+1:orig_len+pad_len) = [];
+% 
+% parfor i=1:length(img_data_recovered)
+%     if(img_data_recovered(i)<0)
+%         img_data_recovered(i) = 0;
+%     end
+%     if(img_data_recovered(i)>1)
+%         img_data_recovered(i) = 1;
+%     end
+% end
+% img_rx = data2image(img_data_recovered, row_im, col_im, third_im, 2);
+% 
+% toc % -- S5 Timing
+% 
+% % Show image
+% figure();
+% subplot(1,2,1);
+% imshow(image);
+% title('Original');
+% subplot(1,2,2);
+% imshow(uint8(img_rx));
+% title('Received');
 
 %% Plot
 % figure();
@@ -246,21 +215,23 @@ title('Received');
 %     end
 % end
 % plot(f*1e-9,FCC_mask);
-% title('Transimitted Power VS FCC')
+% title('Transimitted Power V.S. FCC')
 % legend('Transmitted Signal','FCC');
 % xlabel('Frequency (GHz)');
 % ylabel('Magnitude dBm/MHz');
 % ylim([-250 -40]);
 % 
-% % Received signal VS after BPF
+% % % Received signal VS after BPF
 % figure
 % [sigout_rx_psd, f] = PSD(signal_rx, fs);
 % plot(f*1e-9, 10*log10(sigout_rx_psd));
 % hold on
 % [sigout_post_bpf_psd, f] = PSD(signal_post_bpf, fs);
 % plot(f*1e-9, 10*log10(sigout_post_bpf_psd));
-% title('Received Signal VS Bandpass Filered')
+% title('Received Signal V.S. Bandpass Filered')
 % xlabel('Frequency (GHz)');
 % ylabel('Magnitude dBm/MHz');
 % ylim([-250 -60]);
 % legend('Received Signal','After BPF');
+
+end

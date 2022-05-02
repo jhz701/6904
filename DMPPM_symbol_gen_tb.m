@@ -4,6 +4,7 @@ n = 10; %10th order derivative
 fs = 100e9; %sampling frequency
 fc = 5e9; % center frequency
 frame = 10e-9;% 10ns frame
+frame_num = 1;
 an = 2e-114;% scaling factor
 sigma_sync = 1;% sync pulse position uncertainty being 1*(1/fs)
 sigma_data = 1;% data pulse position uncertainty being 1*(1/fs)
@@ -19,7 +20,7 @@ impairment = struct;
 impairment.datapulse =0;  % datapulse timing uncertainty
 impairment.syncpulse =0; % syncpulse timing uncertainty
 impairment.power     =1; % pulse power uncertainty
-pulse_ideal = DMPPM_symbol_gen_fast(16,tguard, tstep, tframe, n, fs, fc, tpulse, an, impairment);
+pulse_ideal = DMPPM_symbol_gen(16,tguard, tstep, tframe, n, fs, fc, tpulse, an, impairment);
 
 impairment = struct;
 impairment.datapulse =     round(normrnd(0,sigma_data))*(1/fs);  % datapulse timing uncertainty
