@@ -5,7 +5,7 @@
   ## Description
 
   ## Usage
-
+ ![Lenna](demo_ber0.046.jpg "Lenna After TRX")
   The core simulation instance is "system_top.m". This function takes a setup structure that contains all the simulation parameters, run the simulation on the image "Lenna.bmp", and return the **Symbol Error Rate - SER**, each symbol contains 5-bits (range 0~31)
 
   The setup structure contains the following elements:
